@@ -1,4 +1,5 @@
-import { writeFileSync } from "fs";
+
+import { readFileSync, writeFileSync, existsSync } from "fs";
 
 const API_URL = "https://sport.tvp.pl/api/sport/www/block/items?device=www&id=41383942";
 const KEYWORD = "[SKRÓT]";
@@ -11,7 +12,6 @@ function isMundialMatch(title) {
   const upper = title.toUpperCase();
   if (!upper.includes(KEYWORD)) return false;
   if (EXCLUDE.some((ex) => upper.includes(ex))) return false;
-  // Mundialowe skróty zawierają "grupy" lub "meczu" lub "MŚ 2026"
   return MUNDIAL_KEYWORDS.some((kw) => upper.includes(kw));
 }
 
@@ -19,11 +19,30 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+function loadExisting() {
+  try {
+    if (existsSync("docs/data.json")) {
+      const data = JSON.parse(readFileSync("docs/data.json", "utf-8"));
+      return data.matches || [];
+    }
+  } catch (e) {
+    console.log("Could not read existing data.json, starting fresh");
+  }
+  return [];
+}
+
 async function main() {
   console.log("Fetching TVP Sport API...");
-  let allMatches = [];
+  const existing = loadExisting();
+  const existingUrls = new Set(existing.map((m) => m.href));
+  console.log(`Existing highlights: ${existing.length}`);
+
+  let newMatches = [];
+  let foundAllNew = false;
 
   for (let page = 1; page <= MAX_PAGES; page++) {
+    if (foundAllNew) break;
+
     const url = `${API_URL}&page=${page}`;
     console.log(`Page ${page}...`);
 
@@ -42,45 +61,53 @@ async function main() {
       break;
     }
 
-    const highlights = json.data.items
-      .filter((item) => isMundialMatch(item.title))
-      .map((item) => {
-        const dt = new Date(item.release_date);
-        const dateKey = [
-          dt.getFullYear(),
-          String(dt.getMonth() + 1).padStart(2, "0"),
-          String(dt.getDate()).padStart(2, "0"),
-        ].join("-");
+    let newOnPage = 0;
+    let knownOnPage = 0;
 
-        return {
-          title: item.title,
-          href: item.url,
-          dateKey,
-        };
-      });
+    for (const item of json.data.items) {
+      if (!isMundialMatch(item.title)) continue;
 
-    console.log(`  Found ${highlights.length} mundial highlights`);
-    allMatches = allMatches.concat(highlights);
+      if (existingUrls.has(item.url)) {
+        knownOnPage++;
+        continue;
+      }
 
-    if (page < MAX_PAGES) await sleep(DELAY_MS);
+      const dt = new Date(item.release_date);
+      const dateKey = [
+        dt.getFullYear(),
+        String(dt.getMonth() + 1).padStart(2, "0"),
+        String(dt.getDate()).padStart(2, "0"),
+      ].join("-");
+
+      newMatches.push({ title: item.title, href: item.url, dateKey });
+      existingUrls.add(item.url);
+      newOnPage++;
+    }
+
+    console.log(`  New: ${newOnPage}, Known: ${knownOnPage}`);
+
+    // Jeśli na tej stronie wszystkie skróty już znamy, nie ma sensu iść dalej
+    if (newOnPage === 0 && knownOnPage > 0) {
+      console.log("  All highlights on this page already known — stopping.");
+      foundAllNew = true;
+    }
+
+    if (page < MAX_PAGES && !foundAllNew) await sleep(DELAY_MS);
   }
 
-  // Deduplikacja
-  const seen = new Set();
-  const unique = allMatches.filter((m) => {
-    if (seen.has(m.href)) return false;
-    seen.add(m.href);
-    return true;
-  });
+  // Połącz nowe ze starymi, sortuj po dacie (najnowsze pierwsze)
+  const allMatches = [...newMatches, ...existing].sort((a, b) =>
+    b.dateKey.localeCompare(a.dateKey)
+  );
 
   const output = {
     updated: new Date().toISOString(),
-    count: unique.length,
-    matches: unique,
+    count: allMatches.length,
+    matches: allMatches,
   };
 
   writeFileSync("docs/data.json", JSON.stringify(output, null, 2), "utf-8");
-  console.log(`Done! ${unique.length} highlights saved to docs/data.json`);
+  console.log(`Done! ${newMatches.length} new + ${existing.length} existing = ${allMatches.length} total`);
 }
 
 main().catch((e) => {
