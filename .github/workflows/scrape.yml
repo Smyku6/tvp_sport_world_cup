@@ -2,7 +2,10 @@ name: Scrape TVP Sport highlights
 
 on:
   schedule:
-    - cron: "0 */4 * * *"  # co 4 godziny
+    # 3h po każdym możliwym kickoffie (czas polski - 2h = UTC)
+    # Pokrywa wszystkie sloty meczowe Mundialu 2026
+    # Pominięte: 8-18 UTC (10-20 CEST) — brak meczów
+    - cron: "0 0,1,2,3,4,5,6,7,19,20,21,22,23 * 6-7 *"
   workflow_dispatch: # ręczne odpalenie
 
 permissions:
