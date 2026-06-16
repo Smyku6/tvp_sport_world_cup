@@ -138,19 +138,25 @@ function buildHighlightIndex(matches) {
       .replace(/\.?\s*Mecz\s+grupy.*/i, "")
       .replace(/\.?\s*Zobacz\s+wideo.*/i, "")
       .replace(/\.?\s*$/, "")
-      .trim()
-      .toLowerCase();
+      .trim();
     const parts = core.split(/\s*[–\-]\s*/);
     if (parts.length === 2) {
-      const key = parts.map(p => p.trim()).sort().join("|");
-      index[key] = m.href;
+      const code1 = getFlagCode(parts[0]);
+      const code2 = getFlagCode(parts[1]);
+      if (code1 && code2) {
+        const key = [code1, code2].sort().join("|");
+        index[key] = m.href;
+      }
     }
   }
   return index;
 }
 
 function findHighlight(team1, team2, highlightIndex) {
-  const key = [team1.toLowerCase().trim(), team2.toLowerCase().trim()].sort().join("|");
+  const code1 = getFlagCode(team1);
+  const code2 = getFlagCode(team2);
+  if (!code1 || !code2) return null;
+  const key = [code1, code2].sort().join("|");
   return highlightIndex[key] || null;
 }
 
