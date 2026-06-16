@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mundial 2026 — Skróty meczów</title>
+  <title>Mundial 2026</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -14,7 +14,7 @@
     }
     .header {
       background: #1a1a2e;
-      padding: 20px;
+      padding: 20px 20px 0;
       text-align: center;
       border-bottom: 3px solid #e94560;
     }
@@ -26,6 +26,27 @@
       color: #888;
       font-size: 14px;
       margin-top: 4px;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin-top: 16px;
+    }
+    .tab {
+      padding: 10px 28px;
+      cursor: pointer;
+      color: #888;
+      font-weight: 600;
+      font-size: 15px;
+      border-bottom: 3px solid transparent;
+      transition: color 0.2s;
+      user-select: none;
+    }
+    .tab:hover { color: #ccc; }
+    .tab.active {
+      color: #e94560;
+      border-bottom-color: #e94560;
     }
     #container {
       max-width: 900px;
@@ -43,6 +64,11 @@
       border-radius: 4px;
     }
     .date-heading:first-child { margin-top: 0; }
+    .date-heading.today {
+      background: #2a1a3e;
+      border-left-color: #f0c040;
+      color: #f0c040;
+    }
     .matches-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -77,6 +103,55 @@
       border: 1px solid rgba(255,255,255,0.15);
       border-radius: 2px;
     }
+    /* Schedule styles */
+    .schedule-match {
+      display: flex;
+      align-items: center;
+      background: #1e1e38;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      gap: 12px;
+    }
+    .schedule-match.played {
+      opacity: 0.5;
+    }
+    .schedule-match.live {
+      border: 1px solid #f0c040;
+      background: #2a1a3e;
+    }
+    .schedule-time {
+      font-size: 16px;
+      font-weight: 700;
+      color: #e94560;
+      min-width: 50px;
+      text-align: center;
+    }
+    .schedule-teams {
+      flex: 1;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .schedule-group {
+      font-size: 12px;
+      color: #888;
+      min-width: 60px;
+      text-align: right;
+    }
+    .schedule-match.has-highlight .schedule-teams {
+      color: #e94560;
+    }
+    .schedule-match a {
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+    .schedule-match a:hover .schedule-teams {
+      color: #e94560;
+    }
     #loading {
       text-align: center;
       padding: 60px 20px;
@@ -89,26 +164,6 @@
       color: #ff6b6b;
       display: none;
     }
-    .load-more {
-      text-align: center;
-      margin: 24px 0;
-    }
-    .load-more button {
-      padding: 12px 32px;
-      background: #1a1a2e;
-      color: #e94560;
-      font-size: 16px;
-      font-weight: bold;
-      border: 2px solid #e94560;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .load-more button:hover { background: #2a2a4e; }
-    .load-more button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
     .stats {
       text-align: center;
       color: #666;
@@ -116,17 +171,33 @@
       margin-top: 20px;
       padding-bottom: 20px;
     }
+    .section { display: none; }
+    .section.active { display: block; }
+    .highlight-badge {
+      font-size: 11px;
+      background: #e94560;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 8px;
+      font-weight: 700;
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>Mundial 2026 — Skróty meczów</h1>
-    <p>Linki do skrótów z TVP Sport</p>
+    <h1>Mundial 2026</h1>
+    <p>Skróty meczów i terminarz</p>
+    <div class="tabs">
+      <div class="tab active" data-tab="highlights">Skróty</div>
+      <div class="tab" data-tab="schedule">Terminarz</div>
+    </div>
   </div>
   <div id="container">
-    <div id="loading">Ładowanie skrótów...</div>
-    <div id="error">Nie udało się załadować danych. Spróbuj odświeżyć stronę.</div>
-    <div id="matches"></div>
+    <div id="loading">Ładowanie...</div>
+    <div id="error"></div>
+    <div id="highlights" class="section active"></div>
+    <div id="schedule" class="section"></div>
   </div>
   <script src="app.js"></script>
 </body>
