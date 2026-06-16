@@ -1,0 +1,30 @@
+name: Scrape TVP Sport highlights
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"  # co 4 godziny
+  workflow_dispatch: # ręczne odpalenie
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run scraper
+        run: node scraper.mjs
+
+      - name: Commit & push data.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/data.json
+          git diff --cached --quiet || git commit -m "Update highlights data"
+          git push

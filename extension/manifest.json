@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "TVP Sport - Tylko Skróty",
+  "version": "1.0.0",
+  "description": "Filtruje stronę sport.tvp.pl/wideo i pokazuje tylko filmy ze słowem SKRÓT w tytule",
+  "permissions": [],
+  "content_scripts": [
+    {
+      "matches": ["https://sport.tvp.pl/wideo*"],
+      "js": ["content.js"],
+      "css": ["style.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

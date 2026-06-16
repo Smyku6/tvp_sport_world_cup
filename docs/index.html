@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mundial 2026 — Skróty meczów</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0f0f1a;
+      color: #eee;
+      min-height: 100vh;
+    }
+    .header {
+      background: #1a1a2e;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 3px solid #e94560;
+    }
+    .header h1 {
+      font-size: 24px;
+      color: #e94560;
+    }
+    .header p {
+      color: #888;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    #container {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    .date-heading {
+      padding: 12px 16px;
+      margin: 24px 0 12px;
+      background: #1a1a2e;
+      color: #e94560;
+      font-size: 18px;
+      font-weight: bold;
+      border-left: 4px solid #e94560;
+      border-radius: 4px;
+    }
+    .date-heading:first-child { margin-top: 0; }
+    .matches-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 10px;
+    }
+    .match-card {
+      background: #1e1e38;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .match-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
+    }
+    .match-card a {
+      text-decoration: none;
+      color: #eee;
+      display: block;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .match-card a:hover { color: #e94560; }
+    .flag {
+      display: inline-block;
+      width: 22px;
+      height: 16px;
+      vertical-align: middle;
+      margin-right: 3px;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 2px;
+    }
+    #loading {
+      text-align: center;
+      padding: 60px 20px;
+      font-size: 20px;
+      color: #e94560;
+    }
+    #error {
+      text-align: center;
+      padding: 40px 20px;
+      color: #ff6b6b;
+      display: none;
+    }
+    .load-more {
+      text-align: center;
+      margin: 24px 0;
+    }
+    .load-more button {
+      padding: 12px 32px;
+      background: #1a1a2e;
+      color: #e94560;
+      font-size: 16px;
+      font-weight: bold;
+      border: 2px solid #e94560;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .load-more button:hover { background: #2a2a4e; }
+    .load-more button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .stats {
+      text-align: center;
+      color: #666;
+      font-size: 13px;
+      margin-top: 20px;
+      padding-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Mundial 2026 — Skróty meczów</h1>
+    <p>Linki do skrótów z TVP Sport</p>
+  </div>
+  <div id="container">
+    <div id="loading">Ładowanie skrótów...</div>
+    <div id="error">Nie udało się załadować danych. Spróbuj odświeżyć stronę.</div>
+    <div id="matches"></div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

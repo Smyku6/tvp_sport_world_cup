@@ -1,0 +1,131 @@
+#tvp-skrot-container {
+  max-width: 1140px;
+  margin: 20px auto;
+  padding: 0 15px;
+}
+
+.tvp-date-heading {
+  width: 100%;
+  padding: 14px 16px;
+  margin: 24px 0 12px;
+  background: #1a1a2e;
+  color: #e94560;
+  font-family: Arial, sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+  border-left: 4px solid #e94560;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.tvp-date-heading:first-child {
+  margin-top: 0;
+}
+
+.tvp-matches-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.tvp-match-card {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.tvp-match-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tvp-match-card .box-small__content {
+  padding: 12px 14px;
+}
+
+.tvp-flag {
+  display: inline-block;
+  width: 20px;
+  height: 15px;
+  vertical-align: middle;
+  margin-right: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+.tvp-match-card .box-small__title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+  color: #1a1a2e;
+}
+
+.tvp-match-card a {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  padding: 12px 14px;
+}
+
+.tvp-match-card a:hover {
+  color: #e94560;
+}
+
+@media (max-width: 992px) {
+  .tvp-matches-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .tvp-matches-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.tvp-load-more {
+  text-align: center;
+  margin: 24px 0;
+}
+
+.tvp-load-more .button-more {
+  display: inline-block;
+  padding: 12px 32px;
+  background: #1a1a2e;
+  color: #e94560;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.tvp-load-more .button-more:hover {
+  background: #2a2a4e;
+}
+
+#tvp-skrot-badge {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 99999;
+  background: #d32f2f;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  user-select: none;
+  transition: background 0.2s;
+}
+
+#tvp-skrot-badge:hover {
+  background: #b71c1c;
+}
