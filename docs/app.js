@@ -238,13 +238,129 @@ function initTabs() {
   });
 }
 
+// --- TVP API ---
+
+const TVP_API = "https://sport.tvp.pl/api/sport/www/block/items?device=www&id=41383942";
+const KEYWORD = "[SKRÓT]";
+const MUNDIAL_KEYWORDS = ["MUNDIAL", "MŚ 2026", "GRUPY", "MECZU"];
+const EXCLUDE_KW = ["NHL", "NBA", "HOKEJ"];
+
+function isMundialMatch(title) {
+  const upper = title.toUpperCase();
+  if (!upper.includes(KEYWORD)) return false;
+  if (EXCLUDE_KW.some((ex) => upper.includes(ex))) return false;
+  return MUNDIAL_KEYWORDS.some((kw) => upper.includes(kw));
+}
+
+async function fetchLiveHighlights() {
+  const res = await fetch(`${TVP_API}&page=1`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  if (!json.data || !json.data.items) return [];
+
+  const matches = [];
+  for (const item of json.data.items) {
+    if (!isMundialMatch(item.title)) continue;
+    const dt = new Date(item.release_date);
+    const dateKey = [
+      dt.getFullYear(),
+      String(dt.getMonth() + 1).padStart(2, "0"),
+      String(dt.getDate()).padStart(2, "0"),
+    ].join("-");
+    matches.push({ title: item.title, href: item.url, dateKey });
+  }
+  return matches;
+}
+
+// --- State ---
+
+let cachedSchedule = null;
+let cachedScrollToId = null;
+
+function renderAll(matches, schedule) {
+  const highlightsDiv = document.getElementById("highlights");
+  const scheduleDiv = document.getElementById("schedule");
+
+  if (matches.length > 0) {
+    highlightsDiv.innerHTML = renderMatches(matches);
+    highlightsDiv.innerHTML += `<div class="stats">${matches.length} skrótów</div>`;
+  } else {
+    highlightsDiv.innerHTML = `<div id="loading">Brak skrótów.</div>`;
+  }
+
+  if (schedule) {
+    const highlightIndex = buildHighlightIndex(matches);
+    const { html, scrollToId } = renderSchedule(schedule, highlightIndex);
+    scheduleDiv.innerHTML = html;
+    cachedScrollToId = scrollToId;
+  }
+}
+
+// --- Refresh ---
+
+async function refreshHighlights() {
+  const btn = document.getElementById("refreshBtn");
+  const status = document.getElementById("refreshStatus");
+
+  btn.disabled = true;
+  btn.textContent = "Pobieranie...";
+  status.textContent = "";
+
+  try {
+    // Fetch from TVP API + data.json
+    const [liveMatches, dataRes] = await Promise.all([
+      fetchLiveHighlights(),
+      fetch("data.json?" + Date.now()),
+    ]);
+    const data = dataRes.ok ? await dataRes.json() : { matches: [] };
+    const existingUrls = new Set((data.matches || []).map(m => m.href));
+    const newMatches = liveMatches.filter(m => !existingUrls.has(m.href));
+
+    const liveUrls = new Set(liveMatches.map(m => m.href));
+    const extra = (data.matches || []).filter(m => !liveUrls.has(m.href));
+    const merged = [...liveMatches, ...extra].sort((a, b) => b.dateKey.localeCompare(a.dateKey));
+
+    renderAll(merged, cachedSchedule);
+
+    if (newMatches.length > 0) {
+      status.textContent = `Znaleziono ${newMatches.length} nowych skrótów!`;
+      status.style.color = "#4caf50";
+    } else {
+      status.textContent = "Dane aktualne, brak nowych skrótów";
+      status.style.color = "#4caf50";
+    }
+  } catch (e) {
+    // CORS or other error — fall back to re-fetching data.json
+    try {
+      const dataRes = await fetch("data.json?" + Date.now());
+      if (!dataRes.ok) throw new Error(`HTTP ${dataRes.status}`);
+      const data = await dataRes.json();
+
+      renderAll(data.matches || [], cachedSchedule);
+
+      const updated = new Date(data.updated);
+      const timeAgo = Math.round((Date.now() - updated) / 60000);
+      const timeStr = timeAgo < 60
+        ? `${timeAgo} min temu`
+        : `${Math.round(timeAgo / 60)} godz. temu`;
+
+      status.textContent = `Odświeżono z cache (akt. ${timeStr})`;
+      status.style.color = "#f0c040";
+    } catch (e2) {
+      status.textContent = `Błąd: ${e2.message}`;
+      status.style.color = "#ff6b6b";
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = "ODŚWIEŻ";
+}
+
 // --- Init ---
 
 async function loadData() {
   const loading = document.getElementById("loading");
   const error = document.getElementById("error");
-  const highlightsDiv = document.getElementById("highlights");
-  const scheduleDiv = document.getElementById("schedule");
 
   try {
     const [dataRes, scheduleRes] = await Promise.all([
@@ -254,11 +370,12 @@ async function loadData() {
 
     const data = dataRes.ok ? await dataRes.json() : { matches: [] };
     if (!scheduleRes.ok) throw new Error(`schedule.json: HTTP ${scheduleRes.status}`);
-    const schedule = await scheduleRes.json();
+    cachedSchedule = await scheduleRes.json();
 
     loading.style.display = "none";
 
     // Highlights
+    const highlightsDiv = document.getElementById("highlights");
     if (data.matches && data.matches.length > 0) {
       const updated = new Date(data.updated);
       const timeAgo = Math.round((Date.now() - updated) / 60000);
@@ -274,14 +391,15 @@ async function loadData() {
 
     // Schedule
     const highlightIndex = buildHighlightIndex(data.matches || []);
-    const { html, scrollToId } = renderSchedule(schedule, highlightIndex);
-    scheduleDiv.innerHTML = html;
+    const { html, scrollToId } = renderSchedule(cachedSchedule, highlightIndex);
+    document.getElementById("schedule").innerHTML = html;
+    cachedScrollToId = scrollToId;
 
-    // If switching to schedule tab, scroll to today
+    // Scroll to today on schedule tab click
     document.querySelector('[data-tab="schedule"]').addEventListener("click", () => {
-      if (scrollToId) {
+      if (cachedScrollToId) {
         setTimeout(() => {
-          const el = document.getElementById(scrollToId);
+          const el = document.getElementById(cachedScrollToId);
           if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 100);
       }
@@ -294,5 +412,6 @@ async function loadData() {
   }
 }
 
+document.getElementById("refreshBtn").addEventListener("click", refreshHighlights);
 initTabs();
 loadData();

@@ -173,6 +173,32 @@
     }
     .section { display: none; }
     .section.active { display: block; }
+    .refresh-btn {
+      display: inline-block;
+      background: #e94560;
+      color: #fff;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin: 16px 0 4px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .refresh-btn:hover { background: #d63050; }
+    .refresh-btn:active { transform: scale(0.96); }
+    .refresh-btn:disabled {
+      background: #555;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .refresh-status {
+      font-size: 12px;
+      color: #888;
+      margin-top: 6px;
+      min-height: 18px;
+    }
     .highlight-badge {
       font-size: 11px;
       background: #e94560;
@@ -188,6 +214,9 @@
   <div class="header">
     <h1>Mundial 2026</h1>
     <p>Skróty meczów i terminarz</p>
+    <p style="color:#f0c040;font-size:12px;margin-top:6px">Polecamy oglądanie skrótów w przeglądarce <a href="https://brave.com" target="_blank" style="color:#f0c040;text-decoration:underline">Brave</a> — brak reklam!</p>
+    <button class="refresh-btn" id="refreshBtn">ODŚWIEŻ</button>
+    <div class="refresh-status" id="refreshStatus"></div>
     <div class="tabs">
       <div class="tab active" data-tab="highlights">Skróty</div>
       <div class="tab" data-tab="schedule">Terminarz</div>
@@ -199,6 +228,6 @@
     <div id="highlights" class="section active"></div>
     <div id="schedule" class="section"></div>
   </div>
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
