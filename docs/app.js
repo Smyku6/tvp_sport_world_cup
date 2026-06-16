@@ -242,14 +242,12 @@ async function loadData() {
 
   try {
     const [dataRes, scheduleRes] = await Promise.all([
-      fetch("data.json"),
-      fetch("schedule.json"),
+      fetch("data.json?" + Date.now()),
+      fetch("schedule.json?" + Date.now()),
     ]);
 
-    if (!dataRes.ok) throw new Error(`data.json: HTTP ${dataRes.status}`);
+    const data = dataRes.ok ? await dataRes.json() : { matches: [] };
     if (!scheduleRes.ok) throw new Error(`schedule.json: HTTP ${scheduleRes.status}`);
-
-    const data = await dataRes.json();
     const schedule = await scheduleRes.json();
 
     loading.style.display = "none";
